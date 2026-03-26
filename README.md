@@ -77,6 +77,11 @@ This is the place for you to write reflections:
 ### Mandatory (Publisher) Reflections
 
 #### Reflection Publisher-1
+In this BambangShop case, I do not think we need a separate `Subscriber` trait yet. In the classic Observer pattern, an interface is useful because the publisher may talk to many different observer implementations through one common contract. Here, every subscriber is represented by the same data shape, namely a `Subscriber` struct with `url` and `name`, and the interaction model is also uniform because notifications are sent to an HTTP endpoint. Since there is currently only one concrete subscriber representation and no alternative observer behavior being swapped in polymorphically, a single model struct is enough. A trait would become useful only if we later needed several subscriber types with different update behaviors or transport mechanisms.
+
+For uniqueness, using a plain `Vec` is possible only if we are willing to manually scan the list every time we add, delete, or validate a subscriber. That would make duplicate prevention and lookup depend on linear search. Because `url` in `Subscriber` is intended to be unique for each `product_type`, the current `DashMap<String, Subscriber>` is a better fit: the unique key is explicit, insertion naturally overwrites or rejects by key policy, and deletion by `url` is straightforward. The outer map grouped by `product_type` plus the inner map keyed by `url` matches the domain model more directly than a list.
+
+For the static `SUBSCRIBERS` variable, `DashMap` and Singleton solve different problems, so Singleton is not a replacement for `DashMap`. A Singleton pattern only ensures there is one shared instance of some repository or store. It does not by itself make concurrent reads and writes safe. In Rust web applications, requests may be handled concurrently, so shared mutable state still needs synchronization. In this repository, `lazy_static!` already gives us one global shared store, while `DashMap` provides the thread-safe concurrent access we need. So the better conclusion is: if we keep global shared subscriber storage, we still need a thread-safe container such as `DashMap` or another synchronized structure, even if we describe the repository itself conceptually as a singleton.
 
 #### Reflection Publisher-2
 
