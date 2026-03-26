@@ -12,7 +12,6 @@ impl SubscriberRepository {
         if SUBSCRIBERS.get(product_type).is_none() {
             SUBSCRIBERS.insert(String::from(product_type), DashMap::new());
         };
-
         SUBSCRIBERS.get(product_type).unwrap()
             .insert(subscriber_value.url.clone(), subscriber_value);
         return subscriber;
